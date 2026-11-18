@@ -100,8 +100,9 @@ def run_system_tests(trigger: str = "scheduled") -> int | None:
                 logger.exception("System test runner failed")
 
         with SessionLocal() as db:
-            run = runs_repo.get(db, run_id)
-            assert run is not None
+            stored = runs_repo.get(db, run_id)
+            assert stored is not None
+            run = stored
             run.status = status
             run.finished_at = utcnow()
             run.duration_s = round(time.perf_counter() - started, 2)

@@ -111,7 +111,7 @@ scripts/e2e_check.py приёмочный сценарий против запу
 ### ИИ-агент
 * Контекст для модели: URL, причина, **последние 5 проверок** (код, длительность, ошибка, фрагмент тела)
   и **история 5 последних действий** по сервису, флаг «разрешены ли авто-действия».
-* Модель (по умолчанию `anthropic/claude-3.5-sonnet` через OpenRouter) отвечает строго JSON:
+* Модель (по умолчанию `anthropic/claude-sonnet-5.5` через OpenRouter) отвечает строго JSON:
   ```json
   {"problem_type": "server", "severity": "high", "summary": "...", "recommendation": "...",
    "command": {"action": "restart", "target": "api", "params": {}, "reason": "..."}}
@@ -177,7 +177,7 @@ loguru с ротацией: `logs/backend.log`, `logs/worker.log` (10 МБ, хр
 | `JWT_TTL_MINUTES` | `720` | время жизни токена |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `admin` / `admin123` | администратор, создаётся при первом старте |
 | `OPENROUTER_API_KEY` | — | ключ OpenRouter; без него работает fallback-классификатор |
-| `OPENROUTER_MODEL` | `anthropic/claude-3.5-sonnet` | любая модель OpenRouter, напр. `google/gemini-pro-1.5` |
+| `OPENROUTER_MODEL` | `anthropic/claude-sonnet-5.5` | любая модель OpenRouter, напр. `google/gemini-3.8-flash` (список: https://openrouter.ai/models) |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | — | отчёты и уведомления в Telegram |
 | `REPORT_HOUR_UTC` | `9` | час ежедневного отчёта (UTC) |
 | `INCIDENT_THRESHOLD` | `2` | сколько неудачных проверок подряд открывают инцидент |

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
 
     # AI agent (OpenRouter)
     openrouter_api_key: str = ""
-    openrouter_model: str = "anthropic/claude-3.5-sonnet"
+    openrouter_model: str = "anthropic/claude-sonnet-5.5"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_timeout: float = 40.0
 
@@ -36,7 +36,6 @@ class Settings(BaseSettings):
 
     # Monitoring
     incident_threshold: int = 2  # consecutive failed checks that open an incident
-    default_slow_threshold_ms: int = 2000
     dispatch_interval_seconds: int = 10
     system_tests_interval_minutes: int = 60
     action_webhook_url: str = ""  # optional external API that receives executed commands
