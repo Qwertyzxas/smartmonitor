@@ -1,0 +1,102 @@
+# SmartMonitor — docker compose up --build
+# All variables have safe defaults; override them in .env (see .env.example).
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-smartmonitor}:${POSTGRES_PASSWORD:-smartmonitor}@postgres:5432/${POSTGRES_DB:-smartmonitor}
+  REDIS_URL: redis://redis:6379/0
+  JWT_SECRET: ${JWT_SECRET:-change-me-in-env}
+  JWT_TTL_MINUTES: ${JWT_TTL_MINUTES:-720}
+  ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+  ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-3.5-sonnet}
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+  TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+  REPORT_HOUR_UTC: ${REPORT_HOUR_UTC:-9}
+  INCIDENT_THRESHOLD: ${INCIDENT_THRESHOLD:-2}
+  SYSTEM_TESTS_INTERVAL_MINUTES: ${SYSTEM_TESTS_INTERVAL_MINUTES:-60}
+  ACTION_WEBHOOK_URL: ${ACTION_WEBHOOK_URL:-}
+  QA_LIVE_LLM: ${QA_LIVE_LLM:-true}
+  SEED_DEMO: ${SEED_DEMO:-true}
+  BACKEND_INTERNAL_URL: http://backend:8000
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_DIR: /app/logs
+
+x-app: &app
+  build: ./backend
+  image: smartmonitor-backend:latest
+  environment: *app-env
+  volumes:
+    - logs:/app/logs
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smartmonitor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartmonitor}
+      POSTGRES_DB: ${POSTGRES_DB:-smartmonitor}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    <<: *app
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    <<: *app
+    command: ["celery", "-A", "app.worker.celery_app", "worker", "-Q", "celery,qa", "--loglevel=INFO", "--concurrency=4"]
+    healthcheck:
+      disable: true
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  scheduler:
+    <<: *app
+    command: ["celery", "-A", "app.worker.celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/celerybeat-schedule"]
+    healthcheck:
+      disable: true
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    image: smartmonitor-frontend:latest
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  logs:
