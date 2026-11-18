@@ -1,9 +1,3 @@
-"""AI incident agent: OpenRouter LLM with a local scikit-learn fallback.
-
-Pure functions (`build_messages`, `parse_decision`, `ask_llm`, `fallback_decision`)
-are DB-agnostic so they can be tested with mock data; `analyze_incident`
-orchestrates everything and persists conversations + actions for audit.
-"""
 from __future__ import annotations
 
 import json
@@ -127,7 +121,6 @@ class OpenRouterClient:
         return content, data
 
 
-# ----------------------------------------------------------------- pure helpers
 def check_to_dict(check: Check) -> dict[str, Any]:
     return {
         "checked_at": check.checked_at.isoformat() if check.checked_at else None,
@@ -162,7 +155,6 @@ _JSON_FENCE = re.compile(r"```(?:json)?\s*(\{.*?\})\s*```", re.DOTALL)
 
 
 def parse_decision(content: str) -> AgentDecision:
-    """Extract and validate the agent's JSON answer (tolerates markdown fences / chatter)."""
     text = content.strip()
     candidates: list[str] = []
     fence = _JSON_FENCE.search(text)
@@ -195,7 +187,7 @@ def ask_llm(ctx: AgentContext, client: OpenRouterClient) -> tuple[AgentDecision,
         content, _raw = client.chat(messages)
         exchange.response = content
         decision = parse_decision(content)
-    except Exception as exc:  # noqa: BLE001 - any failure -> fallback
+    except Exception as exc:
         exchange.latency_ms = round((time.perf_counter() - started) * 1000, 1)
         exchange.error = f"{exc.__class__.__name__}: {exc}"[:2000]
         raise AgentError(str(exc), exchange) from exc
@@ -212,15 +204,15 @@ def fallback_decision(ctx: AgentContext, reason: str | None = None) -> tuple[Age
                               response_body=c.get("body_snippet")) for c in ctx.checks]
     result = classifier.classify(checks)
     text, command, severity = classifier.RECOMMENDATIONS[result.label]
-    decision = AgentDecision(
-        problem_type=result.label,  # type: ignore[arg-type]
-        severity=severity,  # type: ignore[arg-type]
-        summary=f"Локальный классификатор: проблема типа «{result.label}» "
-                f"(уверенность {result.confidence:.0%}). {ctx.incident_reason}",
-        recommendation=text,
-        command=AgentCommandModel(action=command, target=ctx.service_name,  # type: ignore[arg-type]
-                                  reason=f"fallback classifier → {result.label}"),
-    )
+    decision = AgentDecision.model_validate({
+        "problem_type": result.label,
+        "severity": severity,
+        "summary": f"Локальный классификатор: проблема типа «{result.label}» "
+                   f"(уверенность {result.confidence:.0%}). {ctx.incident_reason}",
+        "recommendation": text,
+        "command": {"action": command, "target": ctx.service_name,
+                    "reason": f"fallback classifier → {result.label}"},
+    })
     exchange = LLMExchange(
         provider="fallback", model=FALLBACK_MODEL,
         request={"features": result.features, "context": ctx.to_prompt_dict(), "fallback_reason": reason},
@@ -231,7 +223,6 @@ def fallback_decision(ctx: AgentContext, reason: str | None = None) -> tuple[Age
     return decision, exchange
 
 
-# ----------------------------------------------------------------- orchestration
 def build_context(db: Session, incident: Incident, service: Service, auto_allowed: bool) -> AgentContext:
     recent = checks_repo.recent(db, service.id, limit=5)
     history = actions_repo.history_for_service(db, service.id, limit=5)

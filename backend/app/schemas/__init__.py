@@ -1,4 +1,3 @@
-"""Pydantic DTOs for the HTTP API."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -15,7 +14,6 @@ class ORMModel(BaseModel):
     @field_validator("*", mode="after")
     @classmethod
     def _aware_datetimes(cls, v: Any) -> Any:
-        # SQLite returns naive datetimes; always expose explicit UTC to clients
         if isinstance(v, datetime) and v.tzinfo is None:
             return v.replace(tzinfo=timezone.utc)
         return v
@@ -28,7 +26,6 @@ class Page(BaseModel, Generic[T]):
     size: int
 
 
-# ---------- Auth ----------
 class Credentials(BaseModel):
     username: str = Field(min_length=3, max_length=64, pattern=r"^[A-Za-z0-9_.\-]+$")
     password: str = Field(min_length=6, max_length=128)
@@ -51,7 +48,6 @@ class UserRoleUpdate(BaseModel):
     role: Literal["admin", "viewer"]
 
 
-# ---------- Services ----------
 class ServiceBase(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     url: HttpUrl
@@ -99,7 +95,6 @@ class ServiceWithStats(ServiceOut):
     last_duration_ms: float | None = None
 
 
-# ---------- Checks ----------
 class CheckOut(ORMModel):
     id: int
     service_id: int
@@ -130,7 +125,6 @@ class TimePoint(ORMModel):
     code: int | None
 
 
-# ---------- Incidents / actions / AI ----------
 class ActionOut(ORMModel):
     id: int
     incident_id: int
@@ -219,7 +213,6 @@ class AgentDecision(BaseModel):
         return v if v in {"low", "medium", "high", "critical"} else "medium"
 
 
-# ---------- Settings ----------
 class AppSettingsOut(ORMModel):
     auto_actions_enabled: bool
     ai_enabled: bool
@@ -237,7 +230,6 @@ class AppSettingsUpdate(BaseModel):
     telegram_notifications: bool | None = None
 
 
-# ---------- QA ----------
 class TestRunOut(ORMModel):
     __test__ = False
 
@@ -259,7 +251,6 @@ class TestRunDetail(TestRunOut):
     output: str | None
 
 
-# ---------- Stats ----------
 class SummaryOut(BaseModel):
     services_total: int
     services_active: int
@@ -276,6 +267,5 @@ class SummaryOut(BaseModel):
     last_test_run: TestRunOut | None = None
 
 
-# ---------- Simulator ----------
 class SimModeUpdate(BaseModel):
     mode: Literal["up", "down", "slow", "db_error", "timeout", "flaky"]

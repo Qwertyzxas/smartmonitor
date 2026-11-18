@@ -1,4 +1,3 @@
-"""Fixtures for the self-test suite executed hourly against the running system."""
 from __future__ import annotations
 
 import os
@@ -47,7 +46,6 @@ def viewer_headers(client: httpx.Client) -> dict[str, str]:
 
 @pytest.fixture()
 def temp_service(client: httpx.Client, admin_headers: dict[str, str], base_url: str) -> Iterator[dict]:
-    """A throw-away service pointing at the built-in simulator; removed after the test."""
     sim_name = f"qa-{uuid.uuid4().hex[:8]}"
     client.put(f"/api/sim/{sim_name}", json={"mode": "up"}, headers=admin_headers).raise_for_status()
     r = client.post("/api/services", headers=admin_headers, json={

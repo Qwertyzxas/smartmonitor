@@ -1,4 +1,3 @@
-"""ORM models (SQLAlchemy 2.0, typed)."""
 from __future__ import annotations
 
 import enum
@@ -15,7 +14,6 @@ def utcnow() -> datetime:
 
 
 def as_aware(dt: datetime | None) -> datetime | None:
-    """SQLite drops tzinfo; normalise everything to aware UTC."""
     if dt is None:
         return None
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
@@ -42,11 +40,11 @@ class IncidentStatus(str, enum.Enum):
 
 
 class ActionStatus(str, enum.Enum):
-    suggested = "suggested"   # awaiting admin approval
+    suggested = "suggested"
     executed = "executed"
-    skipped = "skipped"       # rejected / not executed
+    skipped = "skipped"
     failed = "failed"
-    info = "info"             # recommendation without a command
+    info = "info"
 
 
 class AgentCommand(str, enum.Enum):
@@ -145,7 +143,7 @@ class AIConversation(Base):
                                                     nullable=True, index=True)
     service_id: Mapped[int | None] = mapped_column(ForeignKey("services.id", ondelete="CASCADE"),
                                                    nullable=True)
-    provider: Mapped[str] = mapped_column(String(32))  # openrouter | fallback
+    provider: Mapped[str] = mapped_column(String(32))
     model: Mapped[str] = mapped_column(String(128))
     request: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     response: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -164,7 +162,7 @@ class Action(Base):
     service_id: Mapped[int] = mapped_column(ForeignKey("services.id", ondelete="CASCADE"), index=True)
     conversation_id: Mapped[int | None] = mapped_column(ForeignKey("ai_conversations.id", ondelete="SET NULL"),
                                                         nullable=True)
-    source: Mapped[str] = mapped_column(String(32))  # openrouter | fallback | manual
+    source: Mapped[str] = mapped_column(String(32))
     problem_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
     recommendation: Mapped[str] = mapped_column(Text)
     command: Mapped[str] = mapped_column(String(32), default=AgentCommand.none.value)
@@ -191,7 +189,7 @@ class AppSetting(Base):
 
 class TestRun(Base):
     __tablename__ = "test_runs"
-    __test__ = False  # not a pytest class
+    __test__ = False
 
     id: Mapped[int] = mapped_column(primary_key=True)
     trigger: Mapped[str] = mapped_column(String(16), default="scheduled")

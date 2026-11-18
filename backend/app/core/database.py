@@ -1,8 +1,8 @@
-"""SQLAlchemy engine/session factory."""
 from __future__ import annotations
 
 import time
 from collections.abc import Iterator
+from typing import Any
 
 from loguru import logger
 from sqlalchemy import create_engine, event, text
@@ -15,13 +15,13 @@ from app.core.config import settings
 
 def _make_engine(url: str) -> Engine:
     if url.startswith("sqlite"):
-        kwargs: dict = {"connect_args": {"check_same_thread": False}}
+        kwargs: dict[str, Any] = {"connect_args": {"check_same_thread": False}}
         if ":memory:" in url or url.endswith("sqlite://"):
             kwargs["poolclass"] = StaticPool
         sqlite_engine = create_engine(url, **kwargs)
 
         @event.listens_for(sqlite_engine, "connect")
-        def _enable_fk(dbapi_conn, _record) -> None:  # type: ignore[no-untyped-def]
+        def _enable_fk(dbapi_conn: Any, _record: Any) -> None:
             dbapi_conn.execute("PRAGMA foreign_keys=ON")
 
         return sqlite_engine
@@ -46,13 +46,13 @@ def wait_for_db(attempts: int = 30, delay: float = 2.0) -> None:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Database is not ready ({}/{}): {}", i, attempts, exc)
             time.sleep(delay)
     raise RuntimeError("Database is unavailable")
 
 
 def init_db() -> None:
-    from app.models import Base  # noqa: WPS433 - register models
+    from app.models import Base
 
     Base.metadata.create_all(bind=engine)

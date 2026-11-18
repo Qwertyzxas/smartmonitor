@@ -1,4 +1,3 @@
-"""Execution of structured agent commands (stubbed: audit log + optional webhook)."""
 from __future__ import annotations
 
 import httpx
@@ -12,13 +11,6 @@ from app.services import notifications
 
 
 def apply_policy(db: Session, action: Action, service: Service, auto_allowed: bool) -> Action:
-    """Decide what happens with a freshly suggested action.
-
-    * ``none``          -> stored as an informational recommendation;
-    * ``notify_admin``  -> safe, executed immediately;
-    * ``restart`` / ``scale_up`` -> executed automatically only if the admin enabled
-      auto-actions globally AND for this service, otherwise waits for manual approval.
-    """
     if action.command == AgentCommand.none.value:
         action.status = ActionStatus.info.value
         action.result = "Команда не требуется"
@@ -57,7 +49,7 @@ def execute(db: Session, action: Action, service: Service, user: User | None) ->
         action.result = result
         audit_logger.info("EXECUTED action=#{} command={} service='{}' by={} auto={}", action.id,
                           action.command, service.name, payload["initiator"], user is None)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         action.status = ActionStatus.failed.value
         action.result = f"Ошибка выполнения: {exc}"[:1000]
         logger.exception("Action #{} failed", action.id)

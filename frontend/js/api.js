@@ -1,4 +1,3 @@
-// HTTP client + auth state (JWT in localStorage)
 const TOKEN_KEY = "sm_token";
 const USER_KEY = "sm_user";
 
@@ -6,7 +5,7 @@ function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
 }
 function write(key, value) {
-  try { value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch { /* private mode */ }
+  try { value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch { }
 }
 
 export const auth = {

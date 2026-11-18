@@ -1,4 +1,3 @@
-"""FastAPI dependencies: DB session, current user, role guards."""
 from __future__ import annotations
 
 from typing import Annotated

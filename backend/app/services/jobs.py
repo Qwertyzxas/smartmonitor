@@ -1,4 +1,3 @@
-"""Background job submission: Celery when available, in-process thread otherwise."""
 from __future__ import annotations
 
 import threading
@@ -15,7 +14,7 @@ def _run_in_thread(fn: Callable[..., Any], *args: Any) -> None:
     def runner() -> None:
         try:
             fn(*args)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("Background job {} failed", getattr(fn, "__name__", fn))
 
     threading.Thread(target=runner, daemon=True).start()
@@ -28,7 +27,7 @@ def _submit(task_name: str, args: list[Any], fallback: Callable[..., Any]) -> st
 
             celery_app.send_task(task_name, args=args, retry=False)
             return "celery"
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Celery unavailable ({}), running {} in-process", exc, task_name)
     _run_in_thread(fallback, *args)
     return "thread"

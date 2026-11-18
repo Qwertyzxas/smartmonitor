@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import httpx
+from sqlalchemy.orm import Session
 
 from app.models import CheckStatus, Service
 from app.repositories import incidents as incidents_repo
@@ -22,7 +23,7 @@ def test_evaluate_detects_speed_spike() -> None:
     assert "spike" in result.reason.lower()
 
 
-def _service(db) -> Service:  # type: ignore[no-untyped-def]
+def _service(db: Session) -> Service:
     svc = Service(name="svc", url="https://svc.test/", interval_seconds=60, timeout_seconds=5,
                   slow_threshold_ms=2000)
     db.add(svc)
@@ -34,12 +35,12 @@ def _transport(status: int) -> httpx.MockTransport:
     return httpx.MockTransport(lambda request: httpx.Response(status, text="ok" if status < 400 else "fail"))
 
 
-def test_incident_lifecycle(db) -> None:  # type: ignore[no-untyped-def]
+def test_incident_lifecycle(db: Session) -> None:
     svc = _service(db)
 
     first = monitor.run_check(db, svc, transport=_transport(503))
     assert first.check.status == "down"
-    assert first.incident_opened_id is None  # one failure is not an incident yet
+    assert first.incident_opened_id is None
 
     second = monitor.run_check(db, svc, transport=_transport(503))
     assert second.incident_opened_id is not None
@@ -47,7 +48,7 @@ def test_incident_lifecycle(db) -> None:  # type: ignore[no-untyped-def]
     assert incident is not None and incident.status == "open" and incident.failed_checks == 2
 
     third = monitor.run_check(db, svc, transport=_transport(500))
-    assert third.incident_opened_id is None  # still the same incident
+    assert third.incident_opened_id is None
     db.refresh(incident)
     assert incident.failed_checks == 3
 

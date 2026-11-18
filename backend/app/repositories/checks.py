@@ -24,7 +24,6 @@ def add(db: Session, check: Check) -> Check:
 
 
 def recent(db: Session, service_id: int, limit: int = 5) -> list[Check]:
-    """Most recent checks, newest first."""
     stmt = (select(Check).where(Check.service_id == service_id)
             .order_by(Check.checked_at.desc(), Check.id.desc()).limit(limit))
     return list(db.scalars(stmt))

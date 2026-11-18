@@ -1,4 +1,3 @@
-"""HTTP probing of monitored services and evaluation of the result."""
 from __future__ import annotations
 
 import time
@@ -25,7 +24,7 @@ class ProbeResult:
     status_code: int | None
     duration_ms: float | None
     error: str | None = None
-    error_kind: str | None = None  # timeout | connection | dns | ssl | protocol
+    error_kind: str | None = None
     body: str | None = None
 
 
@@ -71,7 +70,6 @@ def probe(url: str, timeout: float, transport: httpx.BaseTransport | None = None
 
 
 def evaluate(result: ProbeResult, slow_threshold_ms: int, recent_durations: list[float]) -> Evaluation:
-    """Classify a probe as up / degraded / down."""
     if result.error_kind:
         return Evaluation(CheckStatus.down, f"{result.error_kind}: {result.error}")
     code = result.status_code or 0
@@ -97,7 +95,6 @@ def evaluate(result: ProbeResult, slow_threshold_ms: int, recent_durations: list
 
 def run_check(db: Session, service: Service, manual: bool = False,
               transport: httpx.BaseTransport | None = None) -> CheckOutcome:
-    """Probe the service, persist a Check and drive incident lifecycle."""
     recent = checks_repo.recent(db, service.id, limit=10)
     baseline = [c.duration_ms for c in recent if c.status == CheckStatus.up.value and c.duration_ms]
 

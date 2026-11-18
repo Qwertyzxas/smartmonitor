@@ -1,4 +1,3 @@
-"""Thin Redis wrapper. All operations degrade gracefully when Redis is unavailable."""
 from __future__ import annotations
 
 import json
@@ -24,7 +23,7 @@ def get_redis() -> redis.Redis | None:
         try:
             _client = redis.Redis.from_url(settings.redis_url, decode_responses=True,
                                            socket_connect_timeout=2, socket_timeout=2)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Redis init failed: {}", exc)
             return None
     return _client
@@ -51,7 +50,8 @@ def get_str(key: str) -> str | None:
     client = get_redis()
     if client is not None:
         try:
-            return client.get(key)  # type: ignore[return-value]
+            value = client.get(key)
+            return value if isinstance(value, str) else None
         except redis.RedisError as exc:
             logger.debug("Redis GET failed: {}", exc)
     return _mem_get(key)
@@ -90,7 +90,6 @@ def delete(*keys: str) -> None:
 
 
 def acquire_lock(key: str, ttl: int) -> bool:
-    """SET NX lock. Returns True if the lock was acquired."""
     client = get_redis()
     if client is not None:
         try:
@@ -113,7 +112,7 @@ def scan_keys(prefix: str) -> list[str]:
     client = get_redis()
     if client is not None:
         try:
-            return [k for k in client.scan_iter(f"{prefix}*")]  # type: ignore[misc]
+            return [str(k) for k in client.scan_iter(match=f"{prefix}*")]
         except redis.RedisError:
             pass
     with _lock:

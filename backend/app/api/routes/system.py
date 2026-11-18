@@ -1,4 +1,3 @@
-"""AI logs, settings, QA runs, stats, reports, simulator, health."""
 from __future__ import annotations
 
 import asyncio
@@ -24,26 +23,23 @@ from app.services import jobs, notifications, simulator, stats
 router = APIRouter(prefix="/api", tags=["system"])
 
 
-# ---------------------------------------------------------------- health
 @router.get("/health")
 def health() -> dict[str, object]:
     db_ok = True
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-    except Exception:  # noqa: BLE001
+    except Exception:
         db_ok = False
     return {"status": "ok" if db_ok else "degraded", "database": db_ok, "redis": cache.ping(),
             "openrouter": settings.openrouter_enabled, "telegram": settings.telegram_enabled}
 
 
-# ---------------------------------------------------------------- stats
 @router.get("/stats/summary", response_model=SummaryOut)
 def summary(db: DB, _: CurrentUser) -> SummaryOut:
     return stats.summary(db)
 
 
-# ---------------------------------------------------------------- AI logs
 @router.get("/ai/conversations", response_model=Page[ConversationOut])
 def conversations(db: DB, _: AdminUser, pg: Pagination, provider: str | None = None) -> Page[ConversationOut]:
     items, total = conv_repo.page(db, *pg, provider=provider)
@@ -59,7 +55,6 @@ def conversation(conversation_id: int, db: DB, _: AdminUser) -> ConversationDeta
     return ConversationDetail.model_validate(item)
 
 
-# ---------------------------------------------------------------- settings
 def _settings_out(db: DB) -> AppSettingsOut:
     rows = settings_repo.get_all(db)
     latest = max(rows.values(), key=lambda r: r.updated_at, default=None)
@@ -92,7 +87,6 @@ def update_settings(body: AppSettingsUpdate, db: DB, admin: AdminUser) -> AppSet
     return _settings_out(db)
 
 
-# ---------------------------------------------------------------- QA
 @router.get("/qa/runs", response_model=Page[TestRunOut])
 def test_runs(db: DB, _: CurrentUser, pg: Pagination) -> Page[TestRunOut]:
     items, total = runs_repo.page(db, *pg)
@@ -113,7 +107,6 @@ def trigger_tests(_: AdminUser) -> dict[str, str]:
     return {"status": "queued", "via": jobs.enqueue_test_run("manual")}
 
 
-# ---------------------------------------------------------------- reports
 @router.post("/reports/telegram")
 def send_report(_: AdminUser) -> dict[str, object]:
     if not settings.telegram_enabled:
@@ -126,7 +119,6 @@ def preview_report(db: DB, _: AdminUser) -> str:
     return notifications.build_report(db)
 
 
-# ---------------------------------------------------------------- simulator
 @router.get("/sim", response_model=dict[str, str])
 def sim_list(_: AdminUser) -> dict[str, str]:
     return simulator.list_modes()
@@ -140,7 +132,6 @@ def sim_set(name: str, body: SimModeUpdate, _: AdminUser) -> dict[str, str]:
 
 @router.post("/sim/{name}/service", response_model=ServiceOut, status_code=201)
 def sim_create_service(name: str, db: DB, _: AdminUser) -> ServiceOut:
-    """Create a simulator endpoint together with a monitored service pointing at it."""
     if not name.replace("-", "").isalnum():
         raise HTTPException(400, "Имя может содержать только латиницу, цифры и дефис")
     simulator.set_mode(name, "up")
@@ -154,7 +145,6 @@ def sim_create_service(name: str, db: DB, _: AdminUser) -> ServiceOut:
 
 @router.get("/sim/{name}", include_in_schema=True)
 async def sim_endpoint(name: str) -> JSONResponse:
-    """Public fake endpoint that is monitored; its behaviour is controlled from the admin panel."""
     mode = simulator.get_mode(name)
     if mode == "flaky":
         mode = random.choice(["up", "down"])

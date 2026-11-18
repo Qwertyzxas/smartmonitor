@@ -1,4 +1,3 @@
-"""Self-made JWT (HS256) and PBKDF2 password hashing — stdlib only."""
 from __future__ import annotations
 
 import base64
@@ -15,7 +14,7 @@ PBKDF2_ITERATIONS = 260_000
 
 
 class TokenError(Exception):
-    """Raised when a JWT is malformed, has an invalid signature or is expired."""
+    pass
 
 
 def _b64encode(data: bytes) -> str:

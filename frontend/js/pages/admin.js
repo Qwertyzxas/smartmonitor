@@ -25,7 +25,6 @@ export async function render(ctx) {
   await { services: servicesTab, settings: settingsTab, ai: aiTab, actions: actionsTab, sim: simTab, users: usersTab }[tab](el, ctx);
 }
 
-// ------------------------------------------------------------------ services
 async function servicesTab(el) {
   const load = async () => {
     const services = await api("/services");
@@ -106,7 +105,6 @@ export function openServiceForm(service, onSaved) {
   };
 }
 
-// ------------------------------------------------------------------ settings
 async function settingsTab(el) {
   const load = async () => {
     const s = await api("/settings");
@@ -154,7 +152,6 @@ async function settingsTab(el) {
   await load();
 }
 
-// ------------------------------------------------------------------ AI logs
 async function aiTab(el) {
   let page = 1;
   let provider = "";
@@ -187,7 +184,6 @@ async function aiTab(el) {
   await load();
 }
 
-// ------------------------------------------------------------------ actions log
 async function actionsTab(el) {
   let page = 1;
   el.innerHTML = `<div class="card"><div class="card-head"><h2>Журнал действий агента</h2></div>
@@ -207,7 +203,6 @@ async function actionsTab(el) {
   await load();
 }
 
-// ------------------------------------------------------------------ simulator
 const SIM_MODES = [
   ["up", "Работает", "200 OK"], ["down", "Упал", "503"], ["db_error", "Ошибка БД", "500 + текст ошибки БД"],
   ["slow", "Медленно", "ответ через 2.5 с"], ["timeout", "Таймаут", "висит 30 с"], ["flaky", "Нестабилен", "50% ошибок"],
@@ -255,7 +250,6 @@ async function simTab(el) {
   await load();
 }
 
-// ------------------------------------------------------------------ users
 async function usersTab(el) {
   const load = async () => {
     const users = await api("/users");

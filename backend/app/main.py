@@ -1,4 +1,3 @@
-"""FastAPI application entrypoint."""
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -52,7 +51,6 @@ for module in (auth, services, incidents, system):
     app.include_router(module.router)
 
 
-# Optional: serve the SPA directly (local development without nginx)
 if settings.frontend_dir and Path(settings.frontend_dir).is_dir():
     frontend = Path(settings.frontend_dir)
     app.mount("/css", StaticFiles(directory=frontend / "css"), name="css")

@@ -1,4 +1,3 @@
-"""Runs the pytest system-test suite and stores the results in the TestRun table."""
 from __future__ import annotations
 
 import os
@@ -56,7 +55,7 @@ def _acquire(trigger: str) -> bool:
         return True
     if trigger != "manual":
         return False
-    deadline = time.time() + 600  # a manual run waits for the current run instead of being dropped
+    deadline = time.time() + 600
     while time.time() < deadline:
         time.sleep(3)
         if cache.acquire_lock(LOCK_KEY, ttl=900):
@@ -95,7 +94,7 @@ def run_system_tests(trigger: str = "scheduled") -> int | None:
                               and counts["total"] > 0 else TestRunStatus.failed.value)
             except subprocess.TimeoutExpired as exc:
                 output = f"Timeout: {exc}"
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 output = f"Runner error: {exc}"
                 logger.exception("System test runner failed")
 

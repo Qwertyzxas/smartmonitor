@@ -1,4 +1,3 @@
-"""Incident lifecycle: open after N consecutive failed checks, resolve on recovery."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -54,7 +53,7 @@ def resolve(incident: Incident) -> None:
 
 
 def on_incident_opened(service: Service, incident: Incident) -> None:
-    from app.services import jobs, notifications  # local import: avoid cycles
+    from app.services import jobs, notifications
 
     jobs.enqueue_analysis(incident.id)
     if not service.is_test:

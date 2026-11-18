@@ -59,7 +59,6 @@ pre {
 .hidden { display: none !important; }
 .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ------------------------------------------------------------------ layout */
 .shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
 .sidebar {
   position: sticky; top: 0; height: 100vh; padding: 22px 14px; display: flex; flex-direction: column; gap: 6px;
@@ -95,7 +94,6 @@ pre {
 .crumbs { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
 .crumbs a { color: var(--muted); }
 
-/* ------------------------------------------------------------------ cards */
 .card {
   background: linear-gradient(180deg, rgba(255, 255, 255, .015), transparent), var(--surface);
   border: 1px solid var(--border); border-radius: var(--radius); padding: 18px;
@@ -111,7 +109,6 @@ pre {
 .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
 .split > * { min-width: 0; }
 
-/* services grid */
 .services { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 14px; }
 .svc {
   position: relative; cursor: pointer; transition: transform .15s ease, border-color .15s ease; overflow: hidden;
@@ -132,7 +129,6 @@ pre {
 .uptime-bar { height: 6px; border-radius: 99px; background: var(--down-soft); overflow: hidden; margin-top: 14px; }
 .uptime-bar > i { display: block; height: 100%; background: var(--up); border-radius: 99px; }
 
-/* status */
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; margin-top: 6px; }
 .dot.up { background: var(--up); box-shadow: 0 0 0 4px var(--up-soft); }
 .dot.degraded { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-soft); }
@@ -157,7 +153,6 @@ pre {
 .strip i.degraded { background: var(--warn); }
 .strip i.down { background: var(--down); }
 
-/* ------------------------------------------------------------------ controls */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 36px; padding: 0 14px;
   border-radius: 10px; border: 1px solid var(--border-2); background: var(--surface-2); color: var(--text);
@@ -219,7 +214,6 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px v
 }
 .tabs button.active { color: var(--text); border-bottom-color: var(--accent); }
 
-/* ------------------------------------------------------------------ tables */
 .table-wrap { overflow-x: auto; margin: 0 -18px; padding: 0 18px; }
 table { width: 100%; border-collapse: collapse; }
 th {
@@ -234,7 +228,6 @@ tbody tr.clickable:hover td { background: rgba(255, 255, 255, .02); }
 .empty { text-align: center; color: var(--muted); padding: 34px 10px; }
 .empty svg { width: 34px; height: 34px; color: var(--faint); display: block; margin: 0 auto 10px; }
 
-/* ------------------------------------------------------------------ incident / ai */
 .action-card { border: 1px solid var(--border); border-radius: 12px; padding: 16px; background: var(--bg-2); }
 .action-card + .action-card { margin-top: 12px; }
 .action-card .rec { font-size: 14.5px; margin: 10px 0; }
@@ -253,7 +246,6 @@ tbody tr.clickable:hover td { background: rgba(255, 255, 255, .02); }
 .msg.assistant { border-color: var(--accent); }
 .msg .role { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
 
-/* ------------------------------------------------------------------ auth */
 .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
 .auth-card { width: 100%; max-width: 400px; padding: 30px; box-shadow: var(--shadow); }
 .auth-card .brand { padding: 0 0 22px; }
@@ -261,7 +253,6 @@ tbody tr.clickable:hover td { background: rgba(255, 255, 255, .02); }
 .auth-card .error { color: var(--down); font-size: 13px; min-height: 18px; }
 .auth-demo { margin-top: 18px; padding: 12px; border-radius: 10px; background: var(--bg-2); border: 1px dashed var(--border-2); color: var(--muted); font-size: 12.5px; }
 
-/* ------------------------------------------------------------------ overlays */
 #toasts { position: fixed; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 60; }
 .toast {
   background: var(--surface-2); border: 1px solid var(--border-2); border-left: 3px solid var(--accent);
@@ -285,7 +276,6 @@ tbody tr.clickable:hover td { background: rgba(255, 255, 255, .02); }
 .notice { padding: 12px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 13px; }
 .notice.info { background: var(--info-soft); color: var(--info); }
 
-/* ------------------------------------------------------------------ responsive */
 @media (max-width: 1080px) { .split { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 860px) {
   .shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }

@@ -1,8 +1,8 @@
-"""Celery tasks."""
 from __future__ import annotations
 
 from datetime import timedelta
 
+from celery import Task
 from celery.signals import worker_process_init
 from loguru import logger
 from sqlalchemy import select
@@ -22,12 +22,11 @@ setup_logging("worker")
 def _init_worker(**_: object) -> None:
     from app.core.database import engine
 
-    engine.dispose()  # fresh connection pool per forked worker process
+    engine.dispose()
 
 
 @celery_app.task(name="smartmonitor.dispatch_due_checks")
 def dispatch_due_checks() -> int:
-    """Enqueue a check for every active service whose interval has elapsed."""
     now = utcnow()
     dispatched = 0
     with SessionLocal() as db:
@@ -35,7 +34,6 @@ def dispatch_due_checks() -> int:
             last = as_aware(service.last_checked_at)
             if last is not None and last + timedelta(seconds=service.interval_seconds) > now:
                 continue
-            # dedupe: do not enqueue again while a check for this service is pending
             if not cache.acquire_lock(f"lock:dispatch:{service.id}", ttl=max(service.interval_seconds - 1, 5)):
                 continue
             check_service.delay(service.id)
@@ -57,18 +55,17 @@ def check_service(service_id: int) -> dict[str, object] | None:
 
 
 @celery_app.task(name="smartmonitor.analyze_incident", bind=True, max_retries=2, default_retry_delay=30)
-def analyze_incident(self, incident_id: int) -> int | None:  # type: ignore[no-untyped-def]
+def analyze_incident(self: Task, incident_id: int) -> int | None:
     try:
         with SessionLocal() as db:
             action = ai_agent.analyze_incident(db, incident_id)
             return action.id if action else None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise self.retry(exc=exc)
 
 
 @celery_app.task(name="smartmonitor.retry_unanalysed")
 def retry_unanalysed() -> int:
-    """Safety net: analyse open incidents that have no agent action yet (e.g. worker was down)."""
     count = 0
     with SessionLocal() as db:
         incidents = db.scalars(select(Incident).where(Incident.status == IncidentStatus.open.value)).all()

@@ -1,4 +1,3 @@
-// SPA shell: hash router, layout, page lifecycle
 import { api, auth } from "./api.js";
 import { chartDefaults, esc, icon } from "./ui.js";
 import * as loginPage from "./pages/login.js";
@@ -22,7 +21,7 @@ const routes = [
 
 let cleanups = [];
 function runCleanups() {
-  cleanups.forEach((fn) => { try { fn(); } catch { /* ignore */ } });
+  cleanups.forEach((fn) => { try { fn(); } catch { } });
   cleanups = [];
 }
 
@@ -68,7 +67,7 @@ export async function refreshOpenCount() {
     const res = await api("/incidents?status=open&size=1");
     el.textContent = res.total;
     el.classList.toggle("hidden", !res.total);
-  } catch { /* ignore */ }
+  } catch { }
 }
 
 async function route() {

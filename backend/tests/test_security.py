@@ -36,4 +36,4 @@ def test_password_hashing() -> None:
     assert hashed.startswith("pbkdf2_sha256$")
     assert verify_password("s3cret!", hashed)
     assert not verify_password("wrong", hashed)
-    assert hash_password("s3cret!") != hashed  # salted
+    assert hash_password("s3cret!") != hashed

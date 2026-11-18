@@ -1,4 +1,3 @@
-"""Database integrity checks: schema, indexes and data consistency."""
 from __future__ import annotations
 
 from collections.abc import Iterator

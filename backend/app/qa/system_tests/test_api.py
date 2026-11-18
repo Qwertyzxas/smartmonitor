@@ -1,4 +1,3 @@
-"""API endpoint checks against the live backend."""
 from __future__ import annotations
 
 import httpx

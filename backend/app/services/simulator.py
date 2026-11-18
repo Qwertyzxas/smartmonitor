@@ -1,4 +1,3 @@
-"""Built-in "fake external service" used to simulate outages from the admin UI."""
 from __future__ import annotations
 
 from app.core import cache

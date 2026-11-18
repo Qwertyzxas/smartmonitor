@@ -1,4 +1,3 @@
-"""Celery application + beat schedule (periodic checks, system tests, Telegram reports)."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -49,8 +48,7 @@ celery_app.conf.update(
 
 @beat_init.connect
 def _run_tests_on_start(sender: Any = None, **_: Any) -> None:
-    """Kick off a first self-test run shortly after the scheduler starts (then hourly)."""
     try:
         celery_app.send_task("smartmonitor.run_system_tests", args=["startup"], countdown=40)
-    except Exception:  # noqa: BLE001
+    except Exception:
         pass

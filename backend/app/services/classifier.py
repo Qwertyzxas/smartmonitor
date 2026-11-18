@@ -1,9 +1,3 @@
-"""Local fallback classifier (scikit-learn) used when OpenRouter is unavailable.
-
-Classifies an incident into network / server / database problems based on
-features extracted from the last checks. The model is trained on a synthetic,
-rule-derived dataset at first use (deterministic seed) and cached in memory.
-"""
 from __future__ import annotations
 
 import threading
@@ -64,18 +58,15 @@ def _synthetic_dataset(rng: np.random.Generator, per_class: int = 400) -> tuple[
         return float(np.clip(v + rng.normal(0, s), 0, 1))
 
     for _ in range(per_class):
-        # network: timeouts / connection errors, no HTTP response
         t = rng.uniform(0, 1)
         rows.append([jitter(t), jitter(1 - t), 0.0, 0.0, 0.0, float(rng.random() < 0.05),
                      float(rng.uniform(6, 10)), jitter(0.05, 0.05)])
         labels.append(0)
-        # server: 5xx without DB hints (often gateway errors), or 4xx
         g = rng.uniform(0, 1)
         f5 = rng.uniform(0.5, 1)
         rows.append([jitter(0.05, 0.05), jitter(0.05, 0.05), f5, f5 * g, jitter(0.1, 0.1),
                      float(rng.random() < 0.03), float(rng.uniform(2, 9)), jitter(0.1, 0.1)])
         labels.append(1)
-        # database: 5xx (mostly 500) + DB keywords in body/error; any latency, sometimes timeouts
         f5 = rng.uniform(0.4, 1)
         rows.append([jitter(0.1, 0.1), jitter(0.02, 0.02), f5, f5 * rng.uniform(0, 0.3), 0.0,
                      float(rng.random() < 0.95), float(rng.uniform(2, 10)), jitter(0.1, 0.1)])
@@ -108,7 +99,6 @@ def classify(checks: Sequence[CheckLike]) -> Classification:
 
 
 RECOMMENDATIONS: dict[str, tuple[str, str, str]] = {
-    # label: (recommendation, command, severity)
     "network": (
         "Сервис недоступен по сети (таймауты / отказ соединения). Проверьте DNS, балансировщик, "
         "firewall и сетевую связность до хоста. Если хост жив — перезапустите ingress/proxy.",

@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Acceptance check against a running stack (stdlib only).
-
-Usage:
-    python scripts/e2e_check.py http://localhost:8080          # acceptance scenario
-    python scripts/e2e_check.py http://localhost:8080 --qa     # run self-tests and require "passed"
-"""
 from __future__ import annotations
 
 import json
@@ -12,6 +6,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from typing import Any
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8080").rstrip("/")
@@ -36,7 +31,7 @@ def step(msg: str) -> None:
     print(f"[e2e] {msg}", flush=True)
 
 
-def wait_for(predicate, timeout: float, what: str) -> Any:  # type: ignore[no-untyped-def]
+def wait_for(predicate: Callable[[], Any], timeout: float, what: str) -> Any:
     deadline = time.time() + timeout
     while time.time() < deadline:
         value = predicate()

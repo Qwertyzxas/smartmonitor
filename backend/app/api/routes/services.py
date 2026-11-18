@@ -46,7 +46,7 @@ def get_service(service_id: int, db: DB, _: CurrentUser) -> ServiceWithStats:
     for item in stats.services_with_stats(db, use_cache=False):
         if item.id == service_id:
             return item
-    service = _get_or_404(db, service_id)  # test services are hidden from the list
+    service = _get_or_404(db, service_id)
     return ServiceWithStats.model_validate(service)
 
 

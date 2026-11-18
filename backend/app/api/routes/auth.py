@@ -5,14 +5,14 @@ from loguru import logger
 
 from app.api.deps import DB, AdminUser, CurrentUser
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models import UserRole
+from app.models import User, UserRole
 from app.repositories import users as users_repo
 from app.schemas import Credentials, TokenOut, UserOut, UserRoleUpdate
 
 router = APIRouter(prefix="/api", tags=["auth"])
 
 
-def _token(user) -> TokenOut:  # type: ignore[no-untyped-def]
+def _token(user: User) -> TokenOut:
     return TokenOut(access_token=create_access_token(str(user.id), user.role),
                     user=UserOut.model_validate(user))
 

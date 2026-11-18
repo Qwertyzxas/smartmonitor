@@ -1,4 +1,3 @@
-// Small UI toolkit: escaping, formatting, toasts, modals, pagination, icons
 export const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => (
   { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
@@ -113,7 +112,6 @@ const ICONS = {
 };
 export const icon = (name) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] ?? ""}</svg>`;
 
-// Chart.js defaults for the dark theme
 export function chartDefaults() {
   if (!window.Chart) return;
   const C = window.Chart;

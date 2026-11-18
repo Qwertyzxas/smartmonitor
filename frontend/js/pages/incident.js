@@ -102,7 +102,6 @@ export async function render(ctx) {
 
   let inc = await load();
   ctx.every(async () => {
-    // keep polling while the agent works or the incident is open
     if (inc.status === "open" || !inc.actions.length) inc = await load().catch(() => inc);
   }, 8000);
 }

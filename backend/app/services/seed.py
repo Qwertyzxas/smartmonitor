@@ -1,4 +1,3 @@
-"""Initial data: admin account and demo services."""
 from __future__ import annotations
 
 from loguru import logger

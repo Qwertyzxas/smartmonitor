@@ -1,4 +1,3 @@
-"""Telegram notifications and periodic reports."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -19,7 +18,7 @@ def _notifications_enabled() -> bool:
     try:
         with SessionLocal() as db:
             return bool(settings_repo.get_value(db, "telegram_notifications"))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return True
 
 

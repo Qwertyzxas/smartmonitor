@@ -4,6 +4,7 @@ import json
 
 import httpx
 import pytest
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models import Check, Incident, Service, utcnow
@@ -22,7 +23,7 @@ def _client(content: str | None = None, fail: bool = False) -> ai_agent.OpenRout
     return ai_agent.OpenRouterClient("k", "test/model", transport=httpx.MockTransport(handler))
 
 
-def _incident(db, auto: bool = True, body: str = "Bad Gateway", code: int = 502) -> Incident:  # type: ignore[no-untyped-def]
+def _incident(db: Session, auto: bool = True, body: str = "Bad Gateway", code: int = 502) -> Incident:
     svc = Service(name="api", url="https://api.test/", auto_actions_enabled=auto)
     db.add(svc)
     db.flush()
@@ -53,7 +54,7 @@ def llm_on(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "openrouter_api_key", "test-key")
 
 
-def test_auto_action_executed_when_allowed(db, llm_on) -> None:  # type: ignore[no-untyped-def]
+def test_auto_action_executed_when_allowed(db: Session, llm_on: None) -> None:
     settings_repo.set_value(db, "auto_actions_enabled", True)
     inc = _incident(db, auto=True)
     action = ai_agent.analyze_incident(db, inc.id, client=_client(DECISION))
@@ -67,13 +68,13 @@ def test_auto_action_executed_when_allowed(db, llm_on) -> None:  # type: ignore[
     assert len(convs) == 1 and convs[0].success and convs[0].request["messages"]
 
 
-def test_dangerous_action_waits_without_permission(db, llm_on) -> None:  # type: ignore[no-untyped-def]
-    inc = _incident(db, auto=True)  # global switch is off by default
+def test_dangerous_action_waits_without_permission(db: Session, llm_on: None) -> None:
+    inc = _incident(db, auto=True)
     action = ai_agent.analyze_incident(db, inc.id, client=_client(DECISION))
     assert action is not None and action.status == "suggested"
 
 
-def test_fallback_when_openrouter_fails(db, llm_on) -> None:  # type: ignore[no-untyped-def]
+def test_fallback_when_openrouter_fails(db: Session, llm_on: None) -> None:
     inc = _incident(db, body="database error: too many connections to postgres", code=500)
     action = ai_agent.analyze_incident(db, inc.id, client=_client(fail=True))
     assert action is not None
@@ -84,7 +85,7 @@ def test_fallback_when_openrouter_fails(db, llm_on) -> None:  # type: ignore[no-
     assert convs[0].success is False and "502" in (convs[0].error or "")
 
 
-def test_fallback_without_key(db) -> None:  # type: ignore[no-untyped-def]
+def test_fallback_without_key(db: Session) -> None:
     inc = _incident(db)
     action = ai_agent.analyze_incident(db, inc.id)
     assert action is not None and action.source == "fallback"

@@ -1,4 +1,3 @@
-"""AI agent checks on mock data (+ an optional live OpenRouter ping)."""
 from __future__ import annotations
 
 import json

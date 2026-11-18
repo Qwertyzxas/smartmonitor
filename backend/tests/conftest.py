@@ -1,4 +1,3 @@
-"""Unit/integration tests running on in-memory SQLite without Redis/Celery."""
 from __future__ import annotations
 
 import os
@@ -16,23 +15,22 @@ os.environ.update({
     "LOG_DIR": os.path.join(tempfile.gettempdir(), "smartmonitor-test-logs"),
 })
 
-from collections.abc import Iterator  # noqa: E402
+from collections.abc import Iterator
 
-import pytest  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
+import pytest
+from fastapi.testclient import TestClient
 
-from app.core import cache  # noqa: E402
-from app.core.database import SessionLocal, engine  # noqa: E402
-from app.models import Base  # noqa: E402
-from app.services import jobs  # noqa: E402
+from app.core import cache
+from app.core.database import SessionLocal, engine
+from app.models import Base
+from app.services import jobs
 
 
 @pytest.fixture(autouse=True)
 def _fresh_db(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    cache._memory.clear()  # noqa: SLF001
-    # incident analysis is exercised explicitly; don't spawn background threads
+    cache._memory.clear()
     monkeypatch.setattr(jobs, "enqueue_analysis", lambda incident_id: "noop")
     yield
 
